@@ -6,5 +6,736 @@
         "disabled": false,
         "info": "",
         "env": []
+    },
+    {
+        "id": "3f96932c9c7e519a",
+        "type": "tab",
+        "label": "AI",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5336553d08ae90f4",
+        "type": "mqtt-broker",
+        "name": "My Local Mosquitto",
+        "broker": "localhost",
+        "port": "1883",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "a3b1c2d4.e5f678",
+        "type": "inject",
+        "z": "3f96932c9c7e519a",
+        "name": "Inject Test Data",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"text\":\"Indonesia will be the host for the next international sports championship.\",\"labels\":[\"politics\",\"sports\",\"technology\",\"business\"]}",
+        "payloadType": "json",
+        "x": 280,
+        "y": 220,
+        "wires": [
+            [
+                "b4c2d3e5.f6a789"
+            ]
+        ]
+    },
+    {
+        "id": "b4c2d3e5.f6a789",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Zero-Shot Classifier",
+        "func": "const { pipeline, env } = await global.get('transformers');\nconst path = global.get('path');\nconst get_process = global.get(\"process\");\nconst cwd = get_process.cwd();\nconst localModelPath = path.join(cwd, 'models');\nnode.log(`Mencari model di path: ${localModelPath}`);\nenv.localModelPath = localModelPath;\nenv.allowRemoteModels = false;\n\nnode.log(\"Library 'transformers' berhasil dimuat dari global context.\"); // Pesan sukses di log\n\nlet classifier = context.get('zero_shot_classifier');\n\nif (!classifier) {\n    node.status({ fill: \"blue\", shape: \"dot\", text: \"Loading classifier model...\" });\n    try {\n        classifier = await pipeline('zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli');\n        context.set('zero_shot_classifier', classifier);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Classifier ready\" });\n    } catch (err) {\n        node.error(\"Gagal memuat model klasifikasi\", err);\n        node.status({ fill: \"red\", shape: \"dot\", text: \"Model load failed\" });\n        msg.payload = {\n            error: \"Initialization failed on server\",\n            details: {\n                message: err.message,\n                name: err.name,\n                stack: err.stack,\n                code: err.code\n            }\n        };\n        return msg;\n    }\n}\n\nconst text = msg.payload.text;\nconst labels = msg.payload.labels;\nif (!text || typeof text !== 'string' || !Array.isArray(labels) || labels.length === 0) {\n    node.warn('Input tidak valid. msg.payload harus berisi \"text\" (string) dan \"labels\" (array of string).');\n    msg.payload = { error: 'Input tidak valid. Pastikan msg.payload memiliki format { \"text\": \"...\", \"labels\": [\"...\", \"...\"] }' };\n    return msg;\n}\n\nnode.status({ fill: \"blue\", shape: \"dot\", text: \"Classifying text...\" });\n\ntry {\n    const output = await classifier(text, labels);\n    msg.payload = output;\n    node.status({ fill: \"green\", shape: \"dot\", text: \"Classifier ready\" });\n} catch (error) {\n    node.error(\"Error selama proses klasifikasi teks\", error);\n    node.status({ fill: \"red\", shape: \"dot\", text: \"Classification error\" });\n    msg.payload = {\n        error: \"Error during classification\",\n        details: {\n            message: error.message,\n            name: error.name,\n            stack: error.stack,\n            code: error.code\n        }\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 220,
+        "wires": [
+            [
+                "c5d3e4f6.a7b89a"
+            ]
+        ]
+    },
+    {
+        "id": "c5d3e4f6.a7b89a",
+        "type": "debug",
+        "z": "3f96932c9c7e519a",
+        "name": "Display Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "304025c7d24e2446",
+        "type": "debug",
+        "z": "3f96932c9c7e519a",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "359f0e6a4480ecfb",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "function 1",
+        "func": "// Kode ini sekarang akan berfungsi karena 'process' sudah diizinkan di settings.js\nconst get_process = global.get(\"process\");\nconst currentPath = get_process.cwd();\n\n// Tampilkan di log untuk debugging\nnode.log(`Current Working Directory (CWD): ${currentPath}`);\n\n// Kirim path sebagai output\nmsg.payload = currentPath;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 300000,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 280,
+        "wires": [
+            [
+                "304025c7d24e2446"
+            ]
+        ]
+    },
+    {
+        "id": "aaa97e721170b1a3",
+        "type": "inject",
+        "z": "3f96932c9c7e519a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 280,
+        "wires": [
+            [
+                "359f0e6a4480ecfb"
+            ]
+        ]
+    },
+    {
+        "id": "36c9b1ce07aa526e",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "function 2",
+        "func": "try {\n    // Coba panggil modul 'path'\n    const path = global.get(\"path\");\n    node.log(\"✅ Modul 'path' berhasil di-require.\");\n\n    // Lakukan tes sederhana menggunakan fungsi path.join()\n    // Ini adalah cara yang aman untuk menggabungkan path, \n    // karena akan otomatis menggunakan separator yang benar ('/' atau '\\')\n    const myPath = path.join('C:', 'Users', '24000024', '.node-red');\n    node.log(`Contoh penggunaan path.join(): ${myPath}`);\n\n    msg.payload = {\n        status: \"Berhasil memuat modul 'path'\",\n        example: myPath\n    };\n\n} catch (err) {\n    // Blok ini seharusnya tidak akan berjalan,\n    // tapi ini adalah praktik yang baik untuk penanganan error.\n    node.error(\"❌ Gagal me-require modul 'path'.\", err);\n    msg.payload = {\n        status: \"Gagal\",\n        error: err.message\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 300000,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 360,
+        "wires": [
+            [
+                "ae601978664790bf"
+            ]
+        ]
+    },
+    {
+        "id": "ae601978664790bf",
+        "type": "debug",
+        "z": "3f96932c9c7e519a",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "c30bfbfd343d18fb",
+        "type": "inject",
+        "z": "3f96932c9c7e519a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 240,
+        "y": 360,
+        "wires": [
+            [
+                "36c9b1ce07aa526e"
+            ]
+        ]
+    },
+    {
+        "id": "756b2edeb605c295",
+        "type": "http in",
+        "z": "3f96932c9c7e519a",
+        "name": "POST /classify",
+        "url": "/classify",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 260,
+        "y": 420,
+        "wires": [
+            [
+                "22df95677a7eb927"
+            ]
+        ]
+    },
+    {
+        "id": "22df95677a7eb927",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Offline Zero-Shot Classifier",
+        "func": "// ========================================================\n// KONFIGURASI UNTUK MODE OFFLINE\n// ========================================================\nconst { pipeline, env } = await global.get('transformers');\nconst path = global.get('path');\nconst get_process = global.get(\"process\");\n\nif (!get_process || !path) {\n    node.error(\"Gagal mendapatkan 'process' atau 'path' dari global context.\");\n    node.status({ fill: \"red\", shape: \"dot\", text: \"Context Error\" });\n    msg.payload = { error: \"Server configuration error.\" };\n    return msg;\n}\n\nconst cwd = get_process.cwd();\nconst localModelPath = path.join(cwd, 'models');\nnode.log(`Mencari model di path: ${localModelPath}`);\nenv.localModelPath = localModelPath;\nenv.allowRemoteModels = false;\nlet classifier = context.get('quantized_classifier');\n\nif (!classifier) {\n    node.status({ fill: \"blue\", shape: \"dot\", text: \"Loading quantized model...\" });\n    try {\n        classifier = await pipeline('zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli', {\n            quantized: true, // Minta versi model yang lebih cepat dan ringan\n        });\n        context.set('quantized_classifier', classifier);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Quantized Model Ready\" });\n    } catch (err) {\n        node.error(\"Gagal memuat model klasifikasi\", err);\n        node.status({ fill: \"red\", shape: \"dot\", text: \"Model load failed\" });\n        msg.payload = { error: \"Initialization failed\", details: { message: err.message, name: err.name } };\n        return msg;\n    }\n}\n\nconst text = msg.payload.text;\nconst labels = msg.payload.labels;\n\nif (!text || typeof text !== 'string' || !Array.isArray(labels) || labels.length === 0) {\n    node.warn('Input tidak valid. msg.payload harus berisi \"text\" (string) dan \"labels\" (array of string).');\n    msg.payload = { error: 'Input tidak valid. Pastikan msg.payload memiliki format { \"text\": \"...\", \"labels\": [\"...\", \"...\"] }' };\n    return msg;\n}\n\nnode.status({ fill: \"blue\", shape: \"dot\", text: \"Classifying text...\" });\n\ntry {\n    const output = await classifier(text, labels);\n    msg.payload = output;\n    node.status({ fill: \"green\", shape: \"dot\", text: \"Classifier ready\" });\n} catch (error) {\n    node.error(\"Error selama proses klasifikasi teks\", error);\n    node.status({ fill: \"red\", shape: \"dot\", text: \"Classification error\" });\n    msg.payload = {\n        error: \"Error during classification\",\n        details: {\n            message: error.message,\n            name: error.name,\n            stack: error.stack,\n            code: error.code\n        }\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 420,
+        "wires": [
+            [
+                "b39616c0002ca129"
+            ]
+        ]
+    },
+    {
+        "id": "d37424ea25ad891a",
+        "type": "http response",
+        "z": "3f96932c9c7e519a",
+        "name": "Send Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1000,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "b39616c0002ca129",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Set HTTP Status Code",
+        "func": "// Jika payload berisi key 'error', berarti terjadi kesalahan.\nif (msg.payload && msg.payload.error) {\n    // \"Input tidak valid\" adalah kesalahan dari sisi klien (400)\n    if (msg.payload.error.includes(\"Input tidak valid\")) {\n        msg.statusCode = 400; // Bad Request\n    } else {\n        msg.statusCode = 500; // Internal Server Error (misal: gagal load model)\n    }\n} else {\n    // Jika tidak ada error, berarti sukses.\n    msg.statusCode = 200; // OK\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 420,
+        "wires": [
+            [
+                "d37424ea25ad891a"
+            ]
+        ]
+    },
+    {
+        "id": "5b5b0b0187d048cd",
+        "type": "http in",
+        "z": "3f96932c9c7e519a",
+        "name": "POST /analyze-actions",
+        "url": "/analyze-actions",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 280,
+        "y": 500,
+        "wires": [
+            [
+                "6c5dd7070579b5f0"
+            ]
+        ]
+    },
+    {
+        "id": "6c5dd7070579b5f0",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Action Category Analyzer",
+        "func": "// ========================================================\n// BAGIAN 1: SETUP MODEL (Sama seperti sebelumnya)\n// ========================================================\nconst { pipeline, env } = await global.get('transformers');\nconst path = global.get('path');\nconst get_process = global.get(\"process\");\n\nif (!get_process || !path) {\n    node.error(\"Gagal mendapatkan 'process' atau 'path' dari global context.\");\n    msg.payload = { error: \"Server configuration error.\" };\n    return msg;\n}\n\nconst cwd = get_process.cwd();\nconst localModelPath = path.join(cwd, 'models');\nenv.localModelPath = localModelPath;\nenv.allowRemoteModels = false;\n\nlet classifier = context.get('quantized_classifier');\n\nif (!classifier) {\n    node.status({ fill: \"blue\", shape: \"dot\", text: \"Loading quantized model...\" });\n    try {\n        classifier = await pipeline('zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli', { \n            quantized: true, \n        });\n        context.set('quantized_classifier', classifier);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Model Ready\" });\n    } catch (err) {\n        node.error(\"Gagal memuat model klasifikasi\", err);\n        msg.payload = { error: \"Initialization failed\", details: { message: err.message } };\n        return msg;\n    }\n}\n\n// ========================================================\n// BAGIAN 2: LOGIKA ANALISIS DARI HTML\n// ========================================================\n\n// Ambil input dari body request API\nconst actionsText = msg.payload.actions; // Teks multi-baris\nconst customLabels = msg.payload.labels;  // Label kustom (opsional)\n\n// Label default jika tidak ada yang diberikan di request\nconst defaultLabels = [ 'Perawatan Areal', 'Infrastruktur & Akses', 'Keamanan & Pengawasan', 'Manajemen Panen', 'Manajemen Tenaga Kerja', 'Penanganan Kendala Alam', 'Pemupukan' ];\n\n// Gunakan label kustom jika ada, jika tidak gunakan default\nconst candidateLabels = Array.isArray(customLabels) && customLabels.length > 0 ? customLabels : defaultLabels;\n\n// Validasi input\nif (!actionsText || typeof actionsText !== 'string') {\n    msg.payload = { error: 'Input tidak valid. Body JSON harus berisi properti \"actions\" (string).' };\n    return msg;\n}\n\nconst lines = actionsText.split('\\n').filter(line => line.trim() !== '');\nif (lines.length === 0) {\n    msg.payload = { error: 'Properti \"actions\" tidak boleh kosong.' };\n    return msg;\n}\n\nnode.status({ fill: \"blue\", shape: \"dot\", text: `Analyzing ${lines.length} actions...` });\n\n// Proses utama\ntry {\n    const categoryCounts = {};\n    const detailedResults = [];\n\n    for (const line of lines) {\n        const output = await classifier(line, candidateLabels);\n        const topCategory = output.labels[0];\n        \n        // 1. Hitung jumlah kategori untuk ringkasan\n        categoryCounts[topCategory] = (categoryCounts[topCategory] || 0) + 1;\n        \n        // 2. Simpan hasil detail untuk setiap baris\n        detailedResults.push({\n            input: line,\n            top_category: topCategory,\n            top_score: output.scores[0],\n            all_scores: output.labels.map((label, index) => ({\n                label: label,\n                score: output.scores[index]\n            }))\n        });\n    }\n    \n    const totalItems = lines.length;\n    \n    // 3. Buat ringkasan (summary)\n    const summaryResults = Object.entries(categoryCounts)\n        .sort((a, b) => b[1] - a[1]) // Urutkan dari jumlah terbanyak\n        .map(([category, count]) => ({\n            category: category,\n            count: count,\n            percentage: parseFloat(((count / totalItems) * 100).toFixed(1))\n        }));\n\n    // 4. Format payload output menjadi JSON\n    msg.payload = {\n        summary: summaryResults,\n        details: detailedResults\n    };\n\n} catch (error) {\n    node.error(\"Error selama analisis aksi\", error);\n    msg.payload = { error: \"Error during analysis\", details: { message: error.message } };\n}\n\nnode.status({ fill: \"green\", shape: \"dot\", text: \"Model Ready\" });\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 500,
+        "wires": [
+            [
+                "3b2ce1653ceccfe1"
+            ]
+        ]
+    },
+    {
+        "id": "9ebafb9dd02108be",
+        "type": "http response",
+        "z": "3f96932c9c7e519a",
+        "name": "Send Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 970,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "3b2ce1653ceccfe1",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Set HTTP Status Code",
+        "func": "// Jika payload berisi key 'error', berarti terjadi kesalahan.\nif (msg.payload && msg.payload.error) {\n    // \"Input tidak valid\" adalah kesalahan dari sisi klien (400)\n    if (msg.payload.error.includes(\"Input tidak valid\")) {\n        msg.statusCode = 400; // Bad Request\n    } else {\n        msg.statusCode = 500; // Internal Server Error (misal: gagal load model)\n    }\n} else {\n    // Jika tidak ada error, berarti sukses.\n    msg.statusCode = 200; // OK\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 500,
+        "wires": [
+            [
+                "9ebafb9dd02108be"
+            ]
+        ]
+    },
+    {
+        "id": "82d0307fcaffc071",
+        "type": "http in",
+        "z": "3f96932c9c7e519a",
+        "name": "POST /analyze-async",
+        "url": "/analyze-async",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 300,
+        "y": 660,
+        "wires": [
+            [
+                "d5e626b5e33cdbd3"
+            ]
+        ]
+    },
+    {
+        "id": "d5e626b5e33cdbd3",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Create Job & Start Process",
+        "func": "// Ambil modul uuid dari global context (setelah di-install)\nconst { v4: uuidv4 } = uuid;\n\n// 1. Buat Job ID unik\nconst jobId = uuidv4();\n\n// 2. Siapkan data pekerjaan\nconst jobData = {\n    status: \"processing\",\n    submitted_at: new Date().toISOString(),\n    payload: msg.payload // Simpan payload asli (actions, labels)\n};\n\n// 3. Simpan status awal ke global context\n// Global context berfungsi sebagai database sementara kita\nglobal.set(`job_${jobId}`, jobData);\n\n// 4. Siapkan pesan untuk dikirim ke background worker\nconst workerMsg = {\n    jobId: jobId,\n    payload: msg.payload\n};\n\n// 5. Siapkan respons langsung untuk klien\nmsg.payload = {\n    message: \"Analysis job submitted successfully.\",\n    jobId: jobId,\n    status_endpoint: `/analyze-status/${jobId}`\n};\nmsg.statusCode = 202; // 202 Accepted, menandakan proses dimulai\n\n// Kirim pesan ke dua output: \n// Output 1: ke background worker (via Link Out)\n// Output 2: ke HTTP Response untuk klien\nreturn [workerMsg, msg];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "uuid",
+                "module": "uuid"
+            }
+        ],
+        "x": 550,
+        "y": 660,
+        "wires": [
+            [
+                "6be6627893b2a550"
+            ],
+            [
+                "d4dd5b4c6a39937c"
+            ]
+        ]
+    },
+    {
+        "id": "6be6627893b2a550",
+        "type": "link out",
+        "z": "3f96932c9c7e519a",
+        "name": "Start Worker",
+        "mode": "link",
+        "links": [
+            "31a6d72370b45085"
+        ],
+        "x": 760,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "d4dd5b4c6a39937c",
+        "type": "http response",
+        "z": "3f96932c9c7e519a",
+        "name": "Send Job ID",
+        "statusCode": "",
+        "headers": {},
+        "x": 760,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "31a6d72370b45085",
+        "type": "link in",
+        "z": "3f96932c9c7e519a",
+        "name": "Worker In",
+        "links": [
+            "6be6627893b2a550"
+        ],
+        "x": 265,
+        "y": 800,
+        "wires": [
+            [
+                "71cf834c0a0be8b0"
+            ]
+        ]
+    },
+    {
+        "id": "71cf834c0a0be8b0",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Action Category Analyzer (Worker)",
+        "func": "// ========================================================\n// BAGIAN SETUP MODEL (Sama seperti sebelumnya)\n// ========================================================\nconst { pipeline, env } = await global.get('transformers');\nconst path = global.get('path');\nconst get_process = global.get(\"process\");\n\nconst cwd = get_process.cwd();\nconst localModelPath = path.join(cwd, 'models');\nenv.localModelPath = localModelPath;\nenv.allowRemoteModels = false;\n\nlet classifier = context.get('quantized_classifier');\nif (!classifier) {\n    try {\n        classifier = await pipeline('zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli', { quantized: true });\n        context.set('quantized_classifier', classifier);\n    } catch (err) {\n        msg.payload = { error: \"Initialization failed\", details: { message: err.message } };\n        return msg;\n    }\n}\n\n// ========================================================\n// BAGIAN ANALISIS DENGAN PELAPORAN PROGRES\n// ========================================================\nconst jobId = msg.jobId;\nconst actionsText = msg.payload.actions;\nconst lines = actionsText.split('\\n').filter(line => line.trim() !== '');\nconst totalItems = lines.length;\n\n// Siapkan label dan variabel hasil\nconst customLabels = msg.payload.labels;\nconst defaultLabels = ['Perawatan Areal', 'Infrastruktur & Akses', 'Keamanan & Pengawasan', 'Manajemen Panen', 'Manajemen Tenaga Kerja', 'Penanganan Kendala Alam', 'Pemupukan'];\nconst candidateLabels = Array.isArray(customLabels) && customLabels.length > 0 ? customLabels : defaultLabels;\nconst categoryCounts = {};\nconst detailedResults = [];\n\n// BARIS BARU: Inisialisasi penghitung\nlet itemsProcessed = 0;\n\nfor (const line of lines) {\n    const output = await classifier(line, candidateLabels);\n    const topCategory = output.labels[0];\n    categoryCounts[topCategory] = (categoryCounts[topCategory] || 0) + 1;\n    detailedResults.push({\n        input: line,\n        top_category: topCategory,\n        top_score: output.scores[0],\n        all_scores: output.labels.map((label, index) => ({ label: label, score: output.scores[index] }))\n    });\n\n    // ========================================================\n    // BARIS BARU: Hitung & simpan progres di setiap iterasi\n    // ========================================================\n    itemsProcessed++;\n    const progress = Math.round((itemsProcessed / totalItems) * 100);\n\n    // Ambil data pekerjaan saat ini, update progres, dan simpan kembali\n    let currentJobData = global.get(`job_${jobId}`) || {};\n    currentJobData.progress = progress;\n    global.set(`job_${jobId}`, currentJobData);\n    // ========================================================\n}\n\n// Siapkan hasil akhir\nconst summaryResults = Object.entries(categoryCounts)\n    .sort((a, b) => b[1] - a[1])\n    .map(([category, count]) => ({\n        category: category,\n        count: count,\n        percentage: parseFloat(((count / totalItems) * 100).toFixed(1))\n    }));\n\nmsg.payload = {\n    summary: summaryResults,\n    details: detailedResults\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 800,
+        "wires": [
+            [
+                "1daa1a574463b6ab"
+            ]
+        ]
+    },
+    {
+        "id": "1daa1a574463b6ab",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Update Job Result",
+        "func": "const jobId = msg.jobId;\n\n// Ambil data pekerjaan yang ada\nlet jobData = global.get(`job_${jobId}`) || {};\n\n// Perbarui status dan tambahkan hasilnya\njobData.status = \"completed\";\njobData.completed_at = new Date().toISOString();\njobData.result = msg.payload;\n\n// Simpan kembali ke global context\nglobal.set(`job_${jobId}`, jobData);\n\n// Log bahwa pekerjaan selesai\nnode.log(`Job ${jobId} completed.`);\n\n// Tidak perlu return msg karena ini akhir dari background process\nreturn;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 800,
+        "wires": [
+            [
+                "0e745de46c5355b3"
+            ]
+        ]
+    },
+    {
+        "id": "1333f4307eb5b1ad",
+        "type": "http in",
+        "z": "3f96932c9c7e519a",
+        "name": "GET /analyze-status/:jobId",
+        "url": "/analyze-status/:jobId",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 330,
+        "y": 900,
+        "wires": [
+            [
+                "7f4d19f0e5028956"
+            ]
+        ]
+    },
+    {
+        "id": "7f4d19f0e5028956",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Get Job Status",
+        "func": "// Ambil jobId dari parameter URL (req.params)\nconst jobId = msg.req.params.jobId;\n\n// Ambil data pekerjaan dari global context\nconst jobData = global.get(`job_${jobId}`);\n\nif (jobData) {\n    // Jika pekerjaan ditemukan, kirim datanya\n    msg.payload = jobData;\n    msg.statusCode = 200; // OK\n} else {\n    // Jika tidak ditemukan\n    msg.payload = { error: \"Job not found.\" };\n    msg.statusCode = 404; // Not Found\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 900,
+        "wires": [
+            [
+                "f78795fd01d6c0e7"
+            ]
+        ]
+    },
+    {
+        "id": "f78795fd01d6c0e7",
+        "type": "http response",
+        "z": "3f96932c9c7e519a",
+        "name": "Send Status",
+        "statusCode": "",
+        "headers": {},
+        "x": 780,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "4b535ee9e4ec33f0",
+        "type": "comment",
+        "z": "3f96932c9c7e519a",
+        "name": "Flow 1: API untuk SUBMIT PEKERJAAN",
+        "info": "",
+        "x": 340,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "0997f090207145b0",
+        "type": "comment",
+        "z": "3f96932c9c7e519a",
+        "name": "Flow 2: BACKGROUND WORKER untuk ANALISIS",
+        "info": "",
+        "x": 370,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "7ea918e6e72f6236",
+        "type": "comment",
+        "z": "3f96932c9c7e519a",
+        "name": "Flow 3: API untuk CEK STATUS PEKERJAAN",
+        "info": "",
+        "x": 360,
+        "y": 850,
+        "wires": []
+    },
+    {
+        "id": "0e745de46c5355b3",
+        "type": "debug",
+        "z": "3f96932c9c7e519a",
+        "name": "debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "e1eccc1f15a3ea91",
+        "type": "http in",
+        "z": "3f96932c9c7e519a",
+        "name": "POST /analyze-async-mqtt",
+        "url": "/analyze-async-mqtt",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 450,
+        "y": 1100,
+        "wires": [
+            [
+                "90b93deac3ca26ea"
+            ]
+        ]
+    },
+    {
+        "id": "90b93deac3ca26ea",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Create Job & Prepare MQTT",
+        "func": "const { v4: uuidv4 } = uuid;\nconst jobId = uuidv4();\n\n// Siapkan data pekerjaan awal untuk disimpan\nconst jobData = {\n    status: \"queued\", // Status baru: di dalam antrian\n    submitted_at: new Date().toISOString(),\n    jobId: jobId\n};\n\n// Simpan status awal ke database/context\nglobal.set(`job_${jobId}`, jobData);\n\n// Pesan yang akan dikirim ke MQTT berisi data yang dibutuhkan worker\nmsg.payload = JSON.stringify({\n    jobId: jobId,\n    actions: msg.payload.actions,\n    labels: msg.payload.labels\n});\n\n// Siapkan respons untuk klien\nconst clientResponse = {\n    message: \"Analysis job queued successfully.\",\n    jobId: jobId\n};\n\n// Kembalikan dua pesan: satu untuk MQTT, satu untuk klien\nreturn [{payload: msg.payload}, {payload: clientResponse, statusCode: 202}];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "uuid",
+                "module": "uuid"
+            }
+        ],
+        "x": 690,
+        "y": 1100,
+        "wires": [
+            [
+                "12dd8137d0db0398"
+            ],
+            [
+                "b78a4e49043dd802"
+            ]
+        ]
+    },
+    {
+        "id": "12dd8137d0db0398",
+        "type": "mqtt out",
+        "z": "3f96932c9c7e519a",
+        "d": true,
+        "name": "Publish to actions/analyze/new",
+        "topic": "actions/analyze/new",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5336553d08ae90f4",
+        "x": 950,
+        "y": 1060,
+        "wires": []
+    },
+    {
+        "id": "b78a4e49043dd802",
+        "type": "http response",
+        "z": "3f96932c9c7e519a",
+        "name": "Send Job ID",
+        "statusCode": "",
+        "headers": {},
+        "x": 920,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "f3f1a0e436357592",
+        "type": "mqtt in",
+        "z": "3f96932c9c7e519a",
+        "d": true,
+        "name": "Subscribe to actions/analyze/new",
+        "topic": "actions/analyze/new",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "5336553d08ae90f4",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 450,
+        "y": 1320,
+        "wires": [
+            [
+                "103447a9419d0d62"
+            ]
+        ]
+    },
+    {
+        "id": "103447a9419d0d62",
+        "type": "function",
+        "z": "3f96932c9c7e519a",
+        "name": "Action Category Analyzer (Worker)",
+        "func": "// Payload dari MQTT adalah data pekerjaan\nconst job = msg.payload;\nconst jobId = job.jobId;\n\n// ... Masukkan semua logika analisis AI Anda yang berat di sini ...\n// Proses job.actions dengan job.labels\n\n// Setelah selesai, siapkan hasilnya\nconst result = {\n    summary: [/* ... hasil summary ... */],\n    details: [/* ... hasil detail ... */]\n};\n\n// Update status di database/context terpusat\n// Contoh: global.set(`job_${jobId}`, { status: 'completed', result: result, ... });\n\n// Atau publish hasilnya ke topik MQTT lain, misal 'actions/analyze/completed'\nmsg.payload = JSON.stringify({ jobId: jobId, result: result });\nmsg.topic = `actions/analyze/completed/${jobId}`;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 1320,
+        "wires": [
+            [
+                "e8d391ecb46724f3"
+            ]
+        ]
+    },
+    {
+        "id": "e8d391ecb46724f3",
+        "type": "mqtt out",
+        "z": "3f96932c9c7e519a",
+        "d": true,
+        "name": "Publish to actions/analyze/completed",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5336553d08ae90f4",
+        "x": 1110,
+        "y": 1320,
+        "wires": []
+    },
+    {
+        "id": "1ed6e2fa3f349e7b",
+        "type": "comment",
+        "z": "3f96932c9c7e519a",
+        "name": "RUNNING GUIDE",
+        "info": "cd C:\\Users\\ryzen\\.node-red\nnode-red",
+        "x": 270,
+        "y": 120,
+        "wires": []
     }
 ]
