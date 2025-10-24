@@ -1,8 +1,8 @@
-# Proyek: Layanan Klasifikasi Teks Zero-Shot di Node-RED
+# Proyek: Klasifikasi Teks Zero-Shot Transformers di Node-RED
 
 Proyek ini mengimplementasikan layanan klasifikasi teks *zero-shot* (nol-tembak) secara *real-time* di dalam Node-RED. Dengan menggunakan *library* `@xenova/transformers.js`, *flow* ini mampu menjalankan model *machine learning* canggih langsung di *server* Node-RED, memungkinkan analisis teks tanpa bergantung pada API eksternal.
 
-## ✨ Fitur Utama
+## Fitur Utama
 
 * **Klasifikasi Teks Zero-Shot:** Mampu mengklasifikasikan teks ke dalam kategori (label) yang disediakan secara *on-the-fly*, bahkan jika model belum pernah dilatih pada label tersebut.
 * **Inferensi Lokal:** Menjalankan model `Xenova/distilbert-base-uncased-mnli` langsung dari *filesystem* lokal (`.node-red/models`), menghilangkan ketergantungan pada internet dan latensi API.
@@ -11,7 +11,7 @@ Proyek ini mengimplementasikan layanan klasifikasi teks *zero-shot* (nol-tembak)
 * **Integrasi MQTT:** Menawarkan *endpoint* asinkron alternatif (`/analyze-async-mqtt`) yang berkomunikasi melalui *topics* MQTT.
 * **Caching Model:** Memuat model ke dalam memori (node *context*) saat pertama kali dijalankan untuk inferensi yang sangat cepat pada *request* berikutnya.
 
-## 📝 Deskripsi Perubahan
+## Deskripsi
 
 Implementasi ini mencakup beberapa komponen utama untuk memungkinkan inferensi model Transformer langsung di dalam Node-RED:
 
@@ -38,7 +38,7 @@ Implementasi ini mencakup beberapa komponen utama untuk memungkinkan inferensi m
         * `POST /analyze-async-mqtt`: Menerima *request*, membuat *job*, dan mem-*publish* ke *topic* MQTT (`actions/analyze/new`).
         * *Subscriber* pada *topic* yang sama akan menjalankan *worker* untuk analisis.
 
-## ✅ TODO (Tugas Selesai)
+## TODO
 
 -   [x] Modifikasi `setting.js` untuk *global context* dan *timeout*.
 -   [x] Buat skrip *wrapper* `lib/transformers-wrapper.js` (diasumsikan).
@@ -48,7 +48,7 @@ Implementasi ini mencakup beberapa komponen utama untuk memungkinkan inferensi m
 -   [x] Implementasikan *flow* *worker* asinkron untuk menangani tugas analisis yang berat.
 -   [x] Konfigurasi Git *repository* dan *access token* untuk *push* ke *remote*.
 
-## 📂 File yang Diubah/Ditambahkan
+## File yang Diubah/Ditambahkan
 
 * `setting.js` (Dimodifikasi)
 * `flows.json` (Dimodifikasi - berisi semua *node* dan *flow* dari gambar)
@@ -58,7 +58,7 @@ Implementasi ini mencakup beberapa komponen utama untuk memungkinkan inferensi m
 
 ---
 
-## 🧠 Penjelasan Arsitektur Flow
+##  Penjelasan Arsitektur Flow
 
 Arsitektur *flow* ini dibagi menjadi beberapa alur logika untuk menangani berbagai jenis *request* dan pola eksekusi:
 
@@ -90,7 +90,7 @@ Ini adalah pola asinkron alternatif yang menggunakan *message broker* (MQTT) unt
 
 ---
 
-## 💡 Penjelasan: Cara Kerja Zero-Shot Classification
+## Penjelasan: Cara Kerja Zero-Shot Classification
 
 Kemampuan *zero-shot* bukanlah sihir; ini adalah cara cerdas memanfaatkan model yang telah dilatih untuk tugas lain, yaitu **Natural Language Inference (NLI)**.
 
@@ -172,7 +172,8 @@ Jalankan Node-RED dari direktori yang benar:
 
 cd C:\Users\ryzen\.node-red
 node-red
-🚀 Penggunaan (API Endpoints)
+
+Penggunaan (API Endpoints)
 POST /classify (Sinkron)
 Mengklasifikasikan teks secara langsung dan mengembalikan hasilnya.
 Request Body:
