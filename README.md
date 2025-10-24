@@ -114,7 +114,7 @@ Model yang kita gunakan adalah `Xenova/distilbert-base-uncased-mnli`. Bagian **`
 4.  **Hasil:** *Label* yang hipotesisnya memiliki skor *entailment* tertinggi akan dipilih sebagai pemenangnya.
     * Dalam contoh di atas, Hipotesis 1 (`"komplain"`) akan mendapatkan skor *entailment* yang jauh lebih tinggi.
 
-## 🛠️ Instalasi & Konfigurasi
+## Instalasi & Konfigurasi
 
 Untuk menjalankan proyek ini, ikuti langkah-langkah berikut di dalam direktori `.node-red` Anda (mis. `C:\Users\ryzen\.node-red`):
 
@@ -216,7 +216,8 @@ Response (Contoh Selesai):
         "scores": [0.85, 0.10, 0.05]
     }
 }
-📄 Kode Inti: Node "Zero-Shot Classifier"
+
+Kode Inti: Node "Zero-Shot Classifier"
 Berikut adalah kode JavaScript yang digunakan di dalam function node utama.
 <details>
 <summary>Klik untuk melihat kode node Zero-Shot Classifier</summary>
