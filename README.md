@@ -1,4 +1,4 @@
-# Proyek: Layanan Klasifikasi Teks Zero-Shot di Node-RED
+# Proyek: Klasifikasi Teks Transformers Zero-Shot di Node-RED
 
 Proyek ini mengimplementasikan layanan klasifikasi teks *zero-shot* (nol-tembak) secara *real-time* di dalam Node-RED. Dengan menggunakan *library* `@xenova/transformers.js`, *flow* ini mampu menjalankan model *machine learning* canggih langsung di *server* Node-RED, memungkinkan analisis teks tanpa bergantung pada API eksternal.
 
