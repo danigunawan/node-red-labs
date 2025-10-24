@@ -734,8 +734,8 @@
         "z": "3f96932c9c7e519a",
         "name": "RUNNING GUIDE",
         "info": "cd C:\\Users\\ryzen\\.node-red\nnode-red",
-        "x": 270,
-        "y": 120,
+        "x": 290,
+        "y": 180,
         "wires": []
     }
 ]
