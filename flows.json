@@ -733,7 +733,7 @@
         "type": "comment",
         "z": "3f96932c9c7e519a",
         "name": "RUNNING GUIDE",
-        "info": "cd C:\\Users\\ryzen\\.node-red\nnode-red",
+        "info": "cd C:\\Users\\ryzen\\.node-red\nnode-red\n\n1.setting.js\nglobal.self = global;\n\nfunctionGlobalContext: {\n        process: process,\n\tpath: require('path'),\n\ttransformers: require('./lib/transformers-wrapper')\n    },\n    \n    // Timeout untuk model loading\n    functionTimeout: 300000, // 5 menit\n\n2. .node-red/models\nhuggingface\nXenova\n3. .node-red/node_modules\n\n## GIT\nNODERED-> SETTINGS -> GIT CONFIG -> SSHKEYS\nGIT-> SSH AND GPG KEYS ADD\n\nDEVELOPERS->PERSONAL ACCESS TOKEN-> GENERATE CLASSIC\nuser : danigunawan\npassword : \n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 (ACCESS TOKEN CLASSIC)",
         "x": 270,
         "y": 180,
         "wires": []
