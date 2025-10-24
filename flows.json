@@ -1,1 +1,72 @@
-[]
+[
+    {
+        "id": "62e8081d451f97d3",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a3b1c2d4.e5f678",
+        "type": "inject",
+        "z": "62e8081d451f97d3",
+        "name": "Inject Test Data",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"text\":\"Indonesia will be the host for the next international sports championship.\",\"labels\":[\"politics\",\"sports\",\"technology\",\"business\"]}",
+        "payloadType": "json",
+        "x": 440,
+        "y": 240,
+        "wires": [
+            [
+                "b4c2d3e5.f6a789"
+            ]
+        ]
+    },
+    {
+        "id": "b4c2d3e5.f6a789",
+        "type": "function",
+        "z": "62e8081d451f97d3",
+        "name": "Zero-Shot Classifier",
+        "func": "const { pipeline, env } = await global.get('transformers');\nconst path = global.get('path');\nconst get_process = global.get(\"process\");\nconst cwd = get_process.cwd();\nconst localModelPath = path.join(cwd, 'models');\nnode.log(`Mencari model di path: ${localModelPath}`);\nenv.localModelPath = localModelPath;\nenv.allowRemoteModels = false;\n\nnode.log(\"Library 'transformers' berhasil dimuat dari global context.\"); // Pesan sukses di log\n\nlet classifier = context.get('zero_shot_classifier');\n\nif (!classifier) {\n    node.status({ fill: \"blue\", shape: \"dot\", text: \"Loading classifier model...\" });\n    try {\n        classifier = await pipeline('zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli');\n        context.set('zero_shot_classifier', classifier);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Classifier ready\" });\n    } catch (err) {\n        node.error(\"Gagal memuat model klasifikasi\", err);\n        node.status({ fill: \"red\", shape: \"dot\", text: \"Model load failed\" });\n        msg.payload = {\n            error: \"Initialization failed on server\",\n            details: {\n                message: err.message,\n                name: err.name,\n                stack: err.stack,\n                code: err.code\n            }\n        };\n        return msg;\n    }\n}\n\nconst text = msg.payload.text;\nconst labels = msg.payload.labels;\nif (!text || typeof text !== 'string' || !Array.isArray(labels) || labels.length === 0) {\n    node.warn('Input tidak valid. msg.payload harus berisi \"text\" (string) dan \"labels\" (array of string).');\n    msg.payload = { error: 'Input tidak valid. Pastikan msg.payload memiliki format { \"text\": \"...\", \"labels\": [\"...\", \"...\"] }' };\n    return msg;\n}\n\nnode.status({ fill: \"blue\", shape: \"dot\", text: \"Classifying text...\" });\n\ntry {\n    const output = await classifier(text, labels);\n    msg.payload = output;\n    node.status({ fill: \"green\", shape: \"dot\", text: \"Classifier ready\" });\n} catch (error) {\n    node.error(\"Error selama proses klasifikasi teks\", error);\n    node.status({ fill: \"red\", shape: \"dot\", text: \"Classification error\" });\n    msg.payload = {\n        error: \"Error during classification\",\n        details: {\n            message: error.message,\n            name: error.name,\n            stack: error.stack,\n            code: error.code\n        }\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 240,
+        "wires": [
+            [
+                "c5d3e4f6.a7b89a"
+            ]
+        ]
+    },
+    {
+        "id": "c5d3e4f6.a7b89a",
+        "type": "debug",
+        "z": "62e8081d451f97d3",
+        "name": "Display Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 240,
+        "wires": []
+    }
+]
